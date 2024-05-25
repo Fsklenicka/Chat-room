@@ -60,11 +60,11 @@ def sendMsg(client_socket, message_entry, chat):
 
 def enter_l(username, password):
     authstat = requests.get(f'{baseurl}/get-user/{username}/{password}')
-    print(authstat)
     if authstat.status_code == 200:
         setuser(username)
         window.withdraw()
         app.deiconify()
+        showuserlist(userlistbox)
     else:
         label = CTkLabel(window, text="login unsuccessful", text_color='red')
         label.pack(pady=5, padx=5)
@@ -91,8 +91,9 @@ def toplogin():
     pywinstyles.apply_style(window, "normal")
     window.attributes('-topmost', True)  # Ensure the window is always on top
     set_appearance_mode('dark')
+    CTkFont('Roboto')
     app.geometry('720x600')
-    app.title('login')
+    window.title('login')
 
     tabs1 = CTkTabview(window)
     tablogin = tabs1.add("Login")
@@ -113,7 +114,7 @@ def toplogin():
     button_login.pack(padx=5, pady=5)
 
     entryuser = CTkEntry(master=tabreg, placeholder_text='Enter username', corner_radius=10)
-    entrypass = CTkEntry(master=tabreg, corner_radius=10, placeholder_text='Enter password', show='*)
+    entrypass = CTkEntry(master=tabreg, corner_radius=10, placeholder_text='Enter password', show='*')
     entryuser.pack(pady=5, padx=5)
     entrypass.pack(pady=5, padx=5)
 
@@ -126,11 +127,20 @@ def changestyle(value):
     pywinstyles.apply_style(app, 'mica')
     pywinstyles.apply_style(app, value)
 
+def showuserlist(chat):
+    usersreq = requests.get(f'{baseurl}/userlist/get')
+    if usersreq.status_code ==200:
+        users = usersreq.json()
+        chat.configure(state='normal')
+        for user in users:
+            chat.insert('end', f'{user}\n')
+
+    chat.configure(state='disabled')
 
 def mainapp():
     global app
     app = CTkToplevel(window)
-    pywinstyles.apply_style(app, "normal")
+    pywinstyles.apply_style(app, 'mica')
     set_appearance_mode('dark')
     app.geometry('720x600')
     app.title('Chat Room')
@@ -139,10 +149,11 @@ def mainapp():
     tabs.pack()
 
     tab1 = tabs.add('Chat')
-    tab2 = tabs.add('Nastaveni')
+    tab2 = tabs.add('Uživatelé')
+    tab3 = tabs.add('Nastavení')
 
     global Textbox
-    Textbox = CTkTextbox(master=tab1, corner_radius=18, border_width=2, width=550, height=450, font=('arial', 20),
+    Textbox = CTkTextbox(master=tab1, corner_radius=18, border_width=2, width=550, height=450, font=('roboto', 20),
                          scrollbar_button_hover_color="blue")
     Textbox.configure(state='disabled')
     Textbox.place(relx=0.5, rely=0.45, anchor="center")
@@ -155,12 +166,17 @@ def mainapp():
                         command=lambda: [sendMsg(client_socket, MsgEntry.get(), Textbox), MsgEntry.delete(0, "end")])
     SendBtn.place(relx=0.84, rely=0.93, anchor='center')
 
-    ThemeLabel = CTkLabel(master=tab2, text='Select Theme', anchor="center").pack(pady=5, padx=5)
-    Themepicker = CTkOptionMenu(master=tab2,
+    ThemeLabel = CTkLabel(master=tab3, text='Select Theme', anchor="center").pack(pady=5, padx=5)
+    Themepicker = CTkOptionMenu(master=tab3,
                                 values=['normal', 'acrylic', 'transparent', 'aero', 'optimised', 'inverse', 'mica'],
                                 command=changestyle).pack()
 
+    userframe = CTkFrame(tab3)
+    userframe.pack(pady=20, padx=20, fill="both", expand=True)
 
+    global userlistbox
+    userlistbox = CTkTextbox(master=tab2, state='disabled', font=('roboto', 20))
+    userlistbox.pack(pady=10,padx=10,fill='both', expand=True)
 def client_program():
     global client_socket
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

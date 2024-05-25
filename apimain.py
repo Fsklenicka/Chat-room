@@ -25,6 +25,5 @@ def getlist():
     return jsonify(user_list), 200
 
 
-
 if __name__ == '__main__':
-    app.run(debug=True,)
+    app.run(debug=True, host='89.203.249.186')
