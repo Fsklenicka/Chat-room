@@ -1,6 +1,6 @@
 import socket
 import functools
-
+from plyer import notification as n
 import customtkinter
 import threading
 from customtkinter import *
@@ -8,6 +8,7 @@ import pywinstyles
 import requests
 
 baseurl = 'http://89.203.249.186:5000'
+notifs = False
 app = CTk()
 set_appearance_mode('dark')
 app.geometry('720x600')
@@ -24,6 +25,11 @@ def receive_messages(client_socket, chat):
         try:
             message = client_socket.recv(1024).decode('utf-8')
             if message:
+                if notifs and not app.focus_get():
+                    n.notify(title='ChatRoom', message=message, ticker='r')
+                    pass
+                else:
+                    pass
                 chat.configure(state='normal')
                 chat.insert("end", message + '\n')
                 chat.yview("end")
@@ -137,6 +143,13 @@ def showuserlist(chat):
 
     chat.configure(state='disabled')
 
+def NotifControl():
+    global notifs
+    if notifs:
+        notifs = False
+    else:
+        notifs = True
+
 def mainapp():
     global app
     app = CTkToplevel(window)
@@ -170,6 +183,9 @@ def mainapp():
     Themepicker = CTkOptionMenu(master=tab3,
                                 values=['normal', 'acrylic', 'transparent', 'aero', 'optimised', 'inverse', 'mica'],
                                 command=changestyle).pack()
+
+    NotifSwitch = CTkSwitch(master=tab3, text='Notifications', command=NotifControl)
+    NotifSwitch.pack(pady=5,padx=5)
 
     userframe = CTkFrame(tab3)
     userframe.pack(pady=20, padx=20, fill="both", expand=True)
