@@ -32,4 +32,8 @@ def authuser(username, password):
             return True
     return False
 
+def userlist():
+    db=loadusr()
+    return list(db.keys())
+
 

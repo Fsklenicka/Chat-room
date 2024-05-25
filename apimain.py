@@ -19,6 +19,12 @@ def reg_user(userID, password):
     else:
         return '0', 400
 
+@app.route("/userlist/get")
+def getlist():
+    user_list = AuthGate.userlist()
+    return jsonify(user_list), 200
+
+
 
 if __name__ == '__main__':
     app.run(debug=True,)
