@@ -18,18 +18,22 @@ def handle_client(client_socket, client_address):
         with lock:
             with open(path, 'r') as file:
                 for line in file:
-                    if "GET / HTTP/1.1" not in line:
+                    if not line.startswith("GET "):  # Filtering out HTTP GET requests
                         client_socket.send(line.encode('utf-8'))
 
         while not shutdown_event.is_set():
-            message = client_socket.recv(1024).decode('utf-8')
-            if not message:
+            try:
+                message = client_socket.recv(1024).decode('utf-8')
+                if not message:
+                    break
+                if not message.startswith("GET "):  # Filtering out HTTP GET requests
+                    logging.info(f"Received from {client_address}: {message}")
+                    broadcast(message, client_socket)
+                    with lock:
+                        with open(path, 'a') as file:
+                            file.write(message + '\n')
+            except ConnectionResetError:
                 break
-            logging.info(f"Received from {client_address}: {message}")
-            broadcast(message, client_socket)
-            with lock:
-                with open(path, 'a') as file:
-                    file.write(message + '\n')
     except Exception as e:
         logging.error(f"Error handling client {client_address}: {e}")
     finally:
@@ -51,7 +55,8 @@ def broadcast(message, current_client_socket):
 
 def server_program():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind(('89.203.249.186', 5555))
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Set SO_REUSEADDR to allow reuse of the address
+    server_socket.bind(('0.0.0.0', 5555))
     server_socket.listen(5)
     logging.info("Server is listening on port 5555")
 
