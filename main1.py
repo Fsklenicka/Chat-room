@@ -1,6 +1,8 @@
 import socket
 import threading
 import logging
+import signal
+import sys
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -8,7 +10,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 path = 'zpravy.msgs'
 lock = threading.Lock()  # Lock for file access and clients list
 clients = []
-
+shutdown_event = threading.Event()  # Event to signal threads to shut down
 
 def handle_client(client_socket, client_address):
     logging.info(f"New connection from {client_address}")
@@ -16,9 +18,10 @@ def handle_client(client_socket, client_address):
         with lock:
             with open(path, 'r') as file:
                 for line in file:
-                    client_socket.send(line.encode('utf-8'))
+                    if "GET / HTTP/1.1" not in line:
+                        client_socket.send(line.encode('utf-8'))
 
-        while True:
+        while not shutdown_event.is_set():
             message = client_socket.recv(1024).decode('utf-8')
             if not message:
                 break
@@ -36,7 +39,6 @@ def handle_client(client_socket, client_address):
                 clients.remove(client_socket)
         logging.info(f"Connection from {client_address} closed")
 
-
 def broadcast(message, current_client_socket):
     with lock:
         for client in clients:
@@ -47,24 +49,34 @@ def broadcast(message, current_client_socket):
                     logging.error(f"Error broadcasting to a client: {e}")
                     clients.remove(client)
 
-
 def server_program():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind(('89.203.249.186', 5555))
     server_socket.listen(5)
     logging.info("Server is listening on port 5555")
 
+    def signal_handler(sig, frame):
+        logging.info("SIGINT received, shutting down server...")
+        shutdown_event.set()  # Signal all threads to shut down
+        server_socket.close()  # Close the server socket to stop accepting new connections
+
+    signal.signal(signal.SIGINT, signal_handler)
+
     try:
-        while True:
-            client_socket, client_address = server_socket.accept()
+        while not shutdown_event.is_set():
+            try:
+                client_socket, client_address = server_socket.accept()
+            except OSError:
+                break  # Break out of loop if server socket is closed
             with lock:
                 clients.append(client_socket)
             threading.Thread(target=handle_client, args=(client_socket, client_address)).start()
-    except KeyboardInterrupt:
-        logging.info("Server is shutting down")
     finally:
-        server_socket.close()
-
+        logging.info("Waiting for all client threads to finish...")
+        for client in clients:
+            client.close()  # Close all client sockets
+        shutdown_event.set()  # Ensure shutdown_event is set
+        logging.info("Server has shut down.")
 
 if __name__ == "__main__":
     server_program()
