@@ -15,7 +15,7 @@ def writeusr(dict):
 
 def registeruser(username, password):
     db = loadusr()
-    if username in db:
+    if not checkuser():
         return 0
     else:
         hashpwd = hashlib.sha256(password.encode()).hexdigest()
@@ -31,6 +31,13 @@ def authuser(username, password):
         if db[username] == hashedpwd:
             return True
     return False
+
+def checkuser(username):
+    db = loadusr()
+    if username in db:
+        return False
+    else:
+        return True
 
 def userlist():
     db=loadusr()

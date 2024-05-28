@@ -6,6 +6,8 @@ import threading
 from customtkinter import *
 import pywinstyles
 import requests
+import EmailHandler
+import random
 
 baseurl = 'http://89.203.249.186:5000'
 notifs = False
@@ -63,6 +65,8 @@ def sendMsg(client_socket, message_entry, chat):
         except:
             client_socket.close()
 
+def forgoted_pass():
+    pass
 
 def enter_l(username, password):
     authstat = requests.get(f'{baseurl}/get-user/{username}/{password}')
@@ -74,17 +78,29 @@ def enter_l(username, password):
     else:
         label = CTkLabel(window, text="login unsuccessful", text_color='red')
         label.pack(pady=5, padx=5)
+        button1 = CTkButton(window, text="Forgoted Password", corner_radius=10, command=forgoted_pass)
+        button1.pack(pady=5, padx=5)
+        window.after(1000, functools.partial(button1.destroy))
         window.after(1000, functools.partial(label.destroy))
 
 
-def registeruser(username, password):
-    regstat = requests.get(f'{baseurl}/reg-user/{username}/{password}')
+def registeruser(username, password, email):
+    regstat = requests.get(f'{baseurl}/chkusr/{username}')
     print(regstat)
 
-    if regstat.status_code == 201:
-        label2 = CTkLabel(master=window, text='registration success. proceed to login', text_color='green')
+    if regstat.status_code == 200:
+        label2 = CTkLabel(master=window, text='registration success. enter ver code', text_color='green')
         label2.pack(pady=5, padx=5)
-        window.after(1000, functools.partial(label2.destroy))
+        ver_code = random.randint(10000, 999999)
+        dialog = CTkInputDialog(text="Enter ver code from your email.")
+        EmailHandler.SendEmail(email, "Ověřovací kód pro ChatRoom", f"Váš jednorázový kód: {ver_code} | Na tento email neodpovídejte !")
+        if int(dialog.get_input()) == ver_code:
+            window.after(1000, functools.partial(label2.destroy))
+            registr = requests.get(f'{baseurl}/reg-user/{username}/{password}')
+            pass
+        else:
+            label3 = CTkLabel(master=window, text='registration :(. Try again', text_color='green')
+            label3.pack(pady=5, padx=5)
     else:
         label1 = CTkLabel(master=window, text='Username already exists', text_color='red')
         label1.pack(pady=5, padx=5)
@@ -115,6 +131,9 @@ def toplogin():
     entry_login_password = CTkEntry(master=tablogin, placeholder_text="Enter password", corner_radius=10, show='*')
     entry_login_password.pack(padx=5, pady=5)
 
+    entry_login_email = CTkEntry(master=tabreg, placeholder_text="Enter Email", corner_radius=10)
+    entry_login_email.pack(padx=5, pady=5)
+
     button_login = CTkButton(master=tablogin, text="Enter", corner_radius=10,
                              command=lambda: [enter_l(entry_login_username.get(), entry_login_password.get())])
     button_login.pack(padx=5, pady=5)
@@ -125,7 +144,7 @@ def toplogin():
     entrypass.pack(pady=5, padx=5)
 
     regbtn = CTkButton(master=tabreg, text='register', corner_radius=10,
-                       command=lambda: [registeruser(entryuser.get(), entrypass.get())])
+                       command=lambda: [registeruser(entryuser.get(), entrypass.get(), entry_login_email.get())])
     regbtn.pack(pady=5, padx=5)
 
 

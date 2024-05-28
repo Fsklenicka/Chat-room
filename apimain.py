@@ -19,6 +19,14 @@ def reg_user(userID, password):
     else:
         return '0', 400
 
+@app.route('/chkusr/<UserID>')
+def checkusername(UserID):
+    res = AuthGate.checkuser(username=UserID)
+    if res:
+        return '1', 200
+    else:
+        return '0', 403
+
 @app.route("/userlist/get")
 def getlist():
     user_list = AuthGate.userlist()
