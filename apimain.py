@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 import AuthGate
+import Emails
 
 app = Flask(__name__)
 
@@ -31,6 +32,12 @@ def checkusername(UserID):
 def getlist():
     user_list = AuthGate.userlist()
     return jsonify(user_list), 200
+
+@app.route('/emails/save/<UserID>/<email>')
+def saveEmail(UserID, email):
+    status = Emails.registeremail(username=UserID, email=email)
+    if status:
+        return '1', 200
 
 
 if __name__ == '__main__':

@@ -15,7 +15,7 @@ def writeusr(dict):
 
 def registeruser(username, password):
     db = loadusr()
-    if not checkuser():
+    if not checkuser(username):
         return 0
     else:
         hashpwd = hashlib.sha256(password.encode()).hexdigest()

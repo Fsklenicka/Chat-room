@@ -97,9 +97,10 @@ def registeruser(username, password, email):
         if int(dialog.get_input()) == ver_code:
             window.after(1000, functools.partial(label2.destroy))
             registr = requests.get(f'{baseurl}/reg-user/{username}/{password}')
+            emailreg = requests.get(f'{baseurl}/emails/save/{username}/{email}')
             pass
         else:
-            label3 = CTkLabel(master=window, text='registration :(. Try again', text_color='green')
+            label3 = CTkLabel(master=window, text='registration :(. Try again', text_color='red')
             label3.pack(pady=5, padx=5)
     else:
         label1 = CTkLabel(master=window, text='Username already exists', text_color='red')
