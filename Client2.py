@@ -1,14 +1,17 @@
-import socket
 import functools
-from plyer import notification as n
-import customtkinter
+import random
+import socket
 import threading
-from customtkinter import *
+
+import customtkinter
 import pywinstyles
 import requests
+from customtkinter import *
+from plyer import notification as n
+
+import AuthGate
 import EmailHandler
-import random
-import ClassModule
+import verification
 
 baseurl = 'http://89.203.249.186:5000'
 notifs = False
@@ -66,7 +69,46 @@ def sendMsg(client_socket, message_entry, chat):
         except:
             client_socket.close()
 
+
+def forgotpassfun(userID):
+    response = requests.get(f'{baseurl}/emails/get/{userID}')
+
+    if response.status_code == 200:
+        useremail = response.text
+        vercode = verification.verify(useremail)
+
+        dialog = CTkInputDialog(text="Enter verification code", title='Verification')
+        user_vercode = dialog.get_input()
+
+        if user_vercode is not None and user_vercode == str(vercode):
+            dialog2 = CTkInputDialog(text="Enter new password", title='Password reset')
+            newpass = dialog2.get_input()
+            if newpass:
+                # Call the API to change the password
+                change_pass_response = requests.get(f'{baseurl}/changepassword/{userID}/{newpass}')
+
+                if change_pass_response.status_code == 200:
+                    print("Password changed successfully.")
+                else:
+                    print("Failed to change password.")
+            else:
+                print("Password reset was cancelled.")
+        else:
+            errlbl = CTkLabel(master=window, text='Invalid verification code', text_color='red')
+            errlbl.pack(padx=5, pady=5)
+    else:
+        print("Error: Failed to retrieve user email.")
+
 def forgoted_pass():
+    forgotwin = CTkToplevel(window)
+    forgotwin.title('Forgotten Password')
+
+    forgotuser = CTkEntry(forgotwin, placeholder_text='Enter Your Username')
+    forgotuser.pack(padx=5, pady=5)
+
+    submitbtn = CTkButton(forgotwin, text='Submit', command=lambda: [forgotpassfun(forgotuser.get())])
+    submitbtn.pack(padx=5, pady=5)
+
     pass
 
 def enter_l(username, password):

@@ -18,3 +18,7 @@ def registeremail(username, email):
     writeemail(db)
     print(f"Email registered {username}, {email}")
     return True
+
+def getemail(username: object) -> object:
+    db = loadmail()
+    return db[username]

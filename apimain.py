@@ -41,7 +41,18 @@ def saveEmail(UserID, email):
 
 @app.route('/class/get/<UserID>')
 def getclass(UserID):
+    pass
+@app.route('/emails/get/<UserID>')
+def getEmail(UserID):
+    return Emails.getemail(username=UserID), 200
 
+@app.route('/changepassword/<UserID>/<password>')
+def changepassword(UserID, password):
+    res = AuthGate.changepassword(username=UserID, password=password)
+    if res == True:
+        return '1', 200
+    else:
+        return '0', 400
 
 if __name__ == '__main__':
     app.run(debug=True, host='89.203.249.186')
