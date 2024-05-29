@@ -8,6 +8,7 @@ import pywinstyles
 import requests
 import EmailHandler
 import random
+import ClassModule
 
 baseurl = 'http://89.203.249.186:5000'
 notifs = False
@@ -140,8 +141,10 @@ def toplogin():
     button_login.pack(padx=5, pady=5)
 
     entryuser = CTkEntry(master=tabreg, placeholder_text='Enter username', corner_radius=10)
+    entryclass = CTkEntry(master=tabreg, placeholder_text='Enter your class', corner_radius=10)
     entrypass = CTkEntry(master=tabreg, corner_radius=10, placeholder_text='Enter password', show='*')
     entryuser.pack(pady=5, padx=5)
+    entryclass.pack(padx=5, pady=5)
     entrypass.pack(pady=5, padx=5)
 
     regbtn = CTkButton(master=tabreg, text='register', corner_radius=10,

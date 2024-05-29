@@ -39,6 +39,9 @@ def saveEmail(UserID, email):
     if status:
         return '1', 200
 
+@app.route('/class/get/<UserID>')
+def getclass(UserID):
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='89.203.249.186')
