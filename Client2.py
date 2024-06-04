@@ -195,7 +195,7 @@ def toplogin():
 
 
 def changestyle(value):
-    pywinstyles.apply_style(app, 'mica')
+    pywinstyles.apply_style(app, 'normal')
     pywinstyles.apply_style(app, value)
 
 def showuserlist(chat):
